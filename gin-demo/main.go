@@ -2,6 +2,9 @@ package main
 
 import (
 	"gin-demo/controllers"
+	internal "gin-demo/internal/database"
+
+	services "gin-demo/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,6 +12,15 @@ import (
 func main() {
 
 	router := gin.Default()
+	db := internal.InitDb()
+
+	if db == nil {
+		//Error while connecting to DB
+		return
+	}
+
+	notesService := &services.NotesService{}
+	notesService.InitService(db)
 
 	// router.GET("/", func(ctx *gin.Context) {
 	// 	ctx.JSON(http.StatusOK, gin.H{
@@ -119,7 +131,7 @@ func main() {
 
 	notesController := controllers.NotesController{}
 
-	notesController.InitNotesControllerRoutes(router)
+	notesController.InitNotesControllerRoutes(router, *notesService)
 
 	router.Run(":8080")
 }

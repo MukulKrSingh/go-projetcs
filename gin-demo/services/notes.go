@@ -1,6 +1,19 @@
 package services
 
+import (
+	"fmt"
+	internal "gin-demo/internal/models"
+
+	"gorm.io/gorm"
+)
+
 type NotesService struct {
+	db *gorm.DB
+}
+
+func (n *NotesService) InitService(databsase *gorm.DB) {
+	n.db = databsase
+	n.db.AutoMigrate(&internal.Notes{})
 }
 
 type Note struct {
@@ -29,5 +42,15 @@ func (n *NotesService) CreateNotesService() Note {
 		Id:   3,
 		Name: "Note 3",
 	}
+
+	err := n.db.Create(&internal.Notes{
+		Id:     1,
+		Title:  "Note-1",
+		Status: true,
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(err)
 	return data
 }
