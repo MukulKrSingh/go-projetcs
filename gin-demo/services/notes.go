@@ -37,20 +37,17 @@ func (n *NotesService) GetNotesService() []Note {
 
 }
 
-func (n *NotesService) CreateNotesService() Note {
-	data := Note{
-		Id:   3,
-		Name: "Note 3",
+func (n *NotesService) CreateNotesService(title string, status bool) (*internal.Notes, error) {
+
+	note := &internal.Notes{
+
+		Title:  title,
+		Status: status,
+	}
+	if err := n.db.Create(note).Error; err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
 
-	err := n.db.Create(&internal.Notes{
-		Id:     1,
-		Title:  "Note-1",
-		Status: true,
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(err)
-	return data
+	return note, nil
 }
