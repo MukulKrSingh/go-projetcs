@@ -21,8 +21,16 @@ func (n *NotesController) InitNotesControllerRoutes(router *gin.Engine, notesSer
 
 func (n *NotesController) GetNotes() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		notes, err := n.notesService.GetNotesService()
+
+		if err != nil {
+			c.JSON(http.StatusNoContent, gin.H{
+				"message": err.Error(),
+			})
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"notes": n.notesService.GetNotesService(),
+			"notes": notes,
 		})
 	}
 }
@@ -30,7 +38,7 @@ func (n *NotesController) GetNotes() gin.HandlerFunc {
 func (n *NotesController) CreateNotes() gin.HandlerFunc {
 
 	type NoteBody struct {
-		Title  string `json:"title"`
+		Title  string `json:"title" binding:"required"`
 		Status bool   `json:"status"`
 	}
 	return func(c *gin.Context) {

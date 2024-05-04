@@ -21,20 +21,15 @@ type Note struct {
 	Name string `json:"name"`
 }
 
-func (n *NotesService) GetNotesService() []Note {
-	data := []Note{
-		{
-			Id:   1,
-			Name: "Note 1",
-		},
-		{
-			Id:   2,
-			Name: "Note 2",
-		},
+func (n *NotesService) GetNotesService() ([]*internal.Notes, error) {
+
+	var notes []*internal.Notes
+
+	if err := n.db.Find(&notes).Error; err != nil {
+		return nil, err
 	}
 
-	return data
-
+	return notes, nil
 }
 
 func (n *NotesService) CreateNotesService(title string, status bool) (*internal.Notes, error) {
