@@ -129,9 +129,10 @@ func main() {
 	// 	}
 	// })
 
-	notesController := controllers.NotesController{}
+	notesController := &controllers.NotesController{}
 
-	notesController.InitNotesControllerRoutes(router, *notesService)
+	notesController.InitNotesController(*notesService)
+	notesController.InitRoutes(router)
 
 	router.Run(":8080")
 }

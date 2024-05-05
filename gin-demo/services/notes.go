@@ -90,16 +90,14 @@ func (n *NotesService) DeleteNotesService(id int64) error {
 		return err
 	}
 
-	// if err := n.db.Save(&note).Error; err != nil {
-	// 	fmt.Println(err)
-	// 	return nil, err
-	// }
-	// note := &internal.Notes{
-	// 	Id:     id,
-	// 	Title:  title,
-	// 	Status: status,
-	// }
-	// n.db.Update(fmt.Sprint(note.Id), note)
-
 	return nil
+}
+func (n *NotesService) GetNoteService(id int64) (*internal.Notes, error) {
+	var note *internal.Notes
+
+	if err := n.db.Where("id = ?", id).First(&note).Error; err != nil {
+		return nil, err
+	}
+
+	return note, nil
 }
