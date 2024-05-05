@@ -3,6 +3,7 @@ package controllers
 import (
 	"gin-demo/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,17 +17,38 @@ func (n *NotesController) InitNotesControllerRoutes(router *gin.Engine, notesSer
 
 	notes.GET("/", n.GetNotes())
 	notes.POST("/", n.CreateNotes())
+	notes.PUT("/", n.UpdateNote())
+	notes.DELETE("/:id", n.DeleteNotes())
 	n.notesService = notesService
 }
 
 func (n *NotesController) GetNotes() gin.HandlerFunc {
+
 	return func(c *gin.Context) {
-		notes, err := n.notesService.GetNotesService()
+		status := c.Query("status")
+		var actualStatus bool
+		var err error
+		var all bool
+		if status != "" {
+			actualStatus, err = strconv.ParseBool(status)
+			all = false
+		} else {
+			all = true
+		}
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		notes, err := n.notesService.GetNotesService(actualStatus, all)
 
 		if err != nil {
 			c.JSON(http.StatusNoContent, gin.H{
 				"message": err.Error(),
 			})
+			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
@@ -63,10 +85,63 @@ func (n *NotesController) CreateNotes() gin.HandlerFunc {
 			"notes": note,
 		})
 	}
+}
 
-	// return func(c *gin.Context) {
-	// 	c.JSON(http.StatusOK, gin.H{
-	// 		"notes": n.notesService.CreateNotesService(),
-	// 	})
-	// }
+func (n *NotesController) UpdateNote() gin.HandlerFunc {
+	type NoteBody struct {
+		Title  string `json:"title" binding:"required"`
+		Status bool   `json:"status"`
+		Id     int    `json:"id" binding:"required"`
+	}
+	return func(c *gin.Context) {
+		var noteBody NoteBody
+		if err := c.BindJSON(&noteBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		note, err := n.notesService.UpdateNotesService(
+			noteBody.Id,
+			noteBody.Title,
+			noteBody.Status,
+		)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"notes": note,
+		})
+	}
+}
+
+func (n *NotesController) DeleteNotes() gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		noteId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		err = n.notesService.DeleteNotesService(
+			noteId,
+		)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": "note successfully deleted",
+		})
+	}
 }
