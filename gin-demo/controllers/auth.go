@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"gin-demo/internal/utils"
 	"gin-demo/services"
 	"net/http"
 
@@ -19,7 +20,7 @@ func InitAuthController(authService *services.AuthService) *AuthController {
 
 func (a *AuthController) InitRoutes(router *gin.Engine) {
 	routes := router.Group("/auth")
-	routes.POST("/login", a.Login())
+	routes.GET("/login", a.Login())
 	routes.POST("/register", a.Register())
 
 }
@@ -49,18 +50,48 @@ func (a *AuthController) Register() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Registered",
-			"email":   user.Email,
+			"email":   user,
 		})
 
 	}
 }
 
-func (*AuthController) Login() gin.HandlerFunc {
+func (a *AuthController) Login() gin.HandlerFunc {
+	type LoginBody struct {
+		Email    string `json:"email" bindings:"required"`
+		Password string `json:"password" bindings:"required"`
+	}
 
 	return func(c *gin.Context) {
+		var loginBody LoginBody
+
+		if err := c.BindJSON(&loginBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		user, err := a.as.LoginService(&loginBody.Email, &loginBody.Password)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+
+		token, tokenErr := utils.GenerateToken(user.Email, user.Id)
+
+		if tokenErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": tokenErr.Error(),
+			})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"message": "connected",
+			"message": user,
+			"token":   token,
 		})
-		return
+
 	}
 }
