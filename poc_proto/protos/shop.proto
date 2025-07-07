@@ -1,0 +1,37 @@
+syntax="proto3";
+package shop;
+
+option go_package="go_bank/protos";
+
+
+service Shop {
+    rpc GetMenu(MenuRequest) returns (stream Menu) {}
+    rpc PlaceOrder(Order) returns (Receipt) {}
+    rpc GetOrderStatus(Receipt) returns (OrderStatus){}
+}
+
+message MenuRequest {
+
+}
+
+message Order{
+    repeated Item item=1;
+
+}
+
+message Receipt {
+    string id = 1;
+    float totalPrice = 2;
+}
+message OrderStatus {
+    string orderId = 1;
+    string status = 2;
+}
+message Menu {
+    repeated Item items=1;
+}
+message Item {
+    string id = 1;
+    string name = 2;
+    float price = 3;
+}
